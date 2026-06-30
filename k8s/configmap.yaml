@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devsu-demo-python-config
+data:
+  DATABASE_NAME: /data/db.sqlite3
+  DEBUG: "False"
+  ALLOWED_HOSTS: "localhost,127.0.0.1"

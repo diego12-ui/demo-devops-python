@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devsu-demo-python
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: devsu-demo-python
+  template:
+    metadata:
+      labels:
+        app: devsu-demo-python
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/your-org/devsu-demo-python:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          envFrom:
+            - configMapRef:
+                name: devsu-demo-python-config
+            - secretRef:
+                name: devsu-demo-python-secret
+          readinessProbe:
+            httpGet:
+              path: /api/health/
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health/
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: devsu-demo-python-data

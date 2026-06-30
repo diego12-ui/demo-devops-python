@@ -1,0 +1,20 @@
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: devsu-demo-python-vpa
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: Deployment
+    name: devsu-demo-python
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+      - containerName: web
+        minAllowed:
+          cpu: "100m"
+          memory: "128Mi"
+        maxAllowed:
+          cpu: "1"
+          memory: "1Gi"
