@@ -1,7 +1,4 @@
-# Arquitectura para presentación
-
-Este documento presenta la arquitectura del proyecto en un formato más ejecutivo, orientado a reuniones técnicas, revisión de diseño o entregables de infraestructura.
-
+# Arquitectura
 ## 1. Objetivo del sistema
 
 La aplicación es un servicio REST en Django que expone operaciones para gestionar usuarios mediante API. Su arquitectura está diseñada para permitir:
