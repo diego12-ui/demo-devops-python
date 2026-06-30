@@ -109,15 +109,11 @@ jobs:
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
         if: ${{ env.KUBE_CONFIG_DATA != '' }}
         run: |
-          if kubectl get crd middlewares.traefik.io >/dev/null 2>&1; then
-            echo "Traefik already installed; skipping installation."
-          else
-            echo "Traefik not found; installing via Helm..."
-            helm repo add traefik https://traefik.github.io/charts
-            helm repo update
-            kubectl create namespace traefik --dry-run=client -o yaml | kubectl apply -f -
-            helm install traefik traefik/traefik -n traefik --wait --timeout 5m
-          fi
+          helm repo add traefik https://traefik.github.io/charts
+          helm repo update
+          kubectl create namespace traefik --dry-run=client -o yaml | kubectl apply -f -
+          helm upgrade --install traefik traefik/traefik -n traefik \
+            -f k8s/traefik-values.yaml --wait --timeout 5m
 
       - name: Deploy Kubernetes manifests
         env:

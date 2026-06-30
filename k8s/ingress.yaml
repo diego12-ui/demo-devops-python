@@ -10,10 +10,10 @@ spec:
   ingressClassName: traefik
   tls:
     - hosts:
-        - devsu-demo.local
+        - api.pluscloudit.pe
       secretName: devsu-demo-python-tls
   rules:
-    - host: devsu-demo.local
+    - host: api.pluscloudit.pe
       http:
         paths:
           - path: /

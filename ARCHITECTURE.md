@@ -55,10 +55,7 @@ flowchart LR
   Ingress --> Service[Service]
   Service --> Deployment[Deployment]
   Deployment --> PodA[Pod 1]
-  Deployment --> PodB[Pod 2]
   PodA --> AppA[Aplicación Django]
-  PodB --> AppB[Aplicación Django]
-  Deployment --> HPA[HPA]
   Deployment --> VPA[VPA]
   Deployment --> Quota[ResourceQuota]
   Deployment --> PVC[PVC]
@@ -83,8 +80,8 @@ flowchart LR
 ## 6. Escalabilidad y disponibilidad
 
 ### Escalabilidad horizontal
-- El `HorizontalPodAutoscaler` ajusta el número de réplicas según uso de CPU y memoria.
-- El despliegue está preparado para escalar desde 2 hasta 6 réplicas.
+- No se usa `HorizontalPodAutoscaler`: la aplicación es *stateful* (SQLite sobre un `PersistentVolumeClaim` `ReadWriteOnce`), por lo que solo puede tener una réplica. El escalado horizontal requeriría externalizar la base de datos (p. ej. PostgreSQL) para volver los pods *stateless*.
+- El despliegue usa `replicas: 1` con estrategia `Recreate` para liberar el volumen antes de recrear el pod.
 
 ### Escalabilidad vertical
 - El `VerticalPodAutoscaler` ajusta los recursos del contenedor cuando el cluster soporta el CRD.
@@ -112,4 +109,4 @@ La solución combina una API Django simple con prácticas modernas de DevOps:
 - cobertura de pruebas con pytest-cov
 - contenedorización con Docker
 - despliegue reproducible en Kubernetes
-- escalabilidad con HPA/VPA y control de recursos con ResourceQuota
+- escalabilidad vertical con VPA y control de recursos con ResourceQuota

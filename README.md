@@ -225,7 +225,6 @@ curl http://localhost:8000/api/users/
 If you deployed in Kubernetes, also verify:
 
 ```bash
-kubectl get hpa -n devsu-demo-python
 kubectl get vpa -n devsu-demo-python
 kubectl describe quota -n devsu-demo-python
 ```
@@ -261,10 +260,9 @@ Kubernetes manifests are available in the `k8s/` folder. The deployment includes
 - Secret
 - PersistentVolumeClaim for SQLite data
 - ResourceQuota
-- Deployment with 2 replicas
+- Deployment with 1 replica (Recreate strategy, SQLite on a ReadWriteOnce PVC)
 - Service
 - Ingress
-- Horizontal Pod Autoscaler (HPA)
 - Vertical Pod Autoscaler (VPA)
 - Liveness and readiness probe on `/api/health/`
 
@@ -364,7 +362,6 @@ flowchart TD
   K8s --> Deploy[Deployment]
   K8s --> SVC[Service]
   K8s --> Ingress[Ingress]
-  K8s --> HPA[Horizontal Pod Autoscaler]
   K8s --> VPA[Vertical Pod Autoscaler]
   K8s --> RQ[ResourceQuota]
 
