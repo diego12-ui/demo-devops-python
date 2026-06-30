@@ -62,7 +62,7 @@ cp .env.example .env
 Edit `.env` and make sure it contains at least:
 
 ```env
-DJANGO_SECRET_KEY=your-secret-key
+DJANGO_SECRET_KEY=foe7gfqv$rsxa^u$gswrpif=v@h!2lyw=n8oq%^$1#d$uv*dm%
 DATABASE_NAME=db.sqlite3
 DEBUG=True
 ALLOWED_HOSTS=127.0.0.1,localhost
