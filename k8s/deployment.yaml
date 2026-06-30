@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: devsu-demo-python
 spec:
-  replicas: 2
+  replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: devsu-demo-python
