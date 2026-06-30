@@ -1,0 +1,6 @@
+# Vulnerabilidades en herramientas de build vendorizadas dentro de setuptools
+# (site-packages/setuptools/_vendor). No forman parte del árbol de dependencias
+# de la aplicación ni se usan en runtime; no son explotables en este contexto.
+# Si una versión futura de setuptools deja de vendorizar la versión vulnerable,
+# esta entrada queda inerte y puede eliminarse.
+CVE-2026-23949

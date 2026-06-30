@@ -1,14 +1,30 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-*.sqlite3
-*.log
-.env
-.git
-.gitignore
-.DS_Store
 **/__pycache__/
 **/*.pyc
 **/*.pyo
 **/*.pyd
+
+# Local data / secrets — must never be baked into the image
+.env
+*.sqlite3
+*.log
+.coverage
+
+# Kubernetes manifests and secrets (not needed at runtime)
+k8s/
+
+# CI / VCS / tooling
+.git
+.gitignore
+.github/
+.DS_Store
+.venv/
+.ruff_cache/
+.pytest_cache/
+
+# Docs
+*.md
