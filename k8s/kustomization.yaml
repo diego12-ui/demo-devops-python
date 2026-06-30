@@ -9,6 +9,7 @@ resources:
   - deployment.yaml
   - service.yaml
   - ingress.yaml
+  - middleware-redirect.yaml
   - resourcequota.yaml
   - tls-secret.yaml
 labels:
