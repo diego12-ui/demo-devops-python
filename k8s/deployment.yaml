@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: ghcr.io/your-org/devsu-demo-python:latest
+          image: docker.io/osmardiego/devsu-demo-python:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
