@@ -24,6 +24,13 @@ spec:
           image: docker.io/osmardiego/devsu-demo-python:latest
           imagePullPolicy: IfNotPresent
           command: ["python", "manage.py", "migrate", "--noinput"]
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
           envFrom:
             - configMapRef:
                 name: devsu-demo-python-config
