@@ -118,9 +118,17 @@ jobs:
       - name: Deploy Kubernetes manifests
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          IMAGE_TAG: ${{ github.sha }}
         if: ${{ env.KUBE_CONFIG_DATA != '' }}
         run: |
           kubectl apply -k k8s
+          # Fija la imagen al tag inmutable por SHA (en lugar de :latest) para forzar el rollout con la imagen recién construida
+          if [ -n "$DOCKERHUB_USERNAME" ]; then
+            IMAGE="docker.io/${DOCKERHUB_USERNAME}/devsu-demo-python:${IMAGE_TAG}"
+            kubectl set image deployment/devsu-demo-python -n devsu-demo-python web="$IMAGE" migrate="$IMAGE"
+          fi
+          kubectl rollout status deployment/devsu-demo-python -n devsu-demo-python --timeout=5m
           if kubectl get crd verticalpodautoscalers.autoscaling.k8s.io >/dev/null 2>&1; then
             kubectl apply -f k8s/vpa.yaml
           else

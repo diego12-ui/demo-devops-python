@@ -14,10 +14,30 @@ spec:
       labels:
         app: devsu-demo-python
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      initContainers:
+        - name: migrate
+          image: docker.io/osmardiego/devsu-demo-python:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "manage.py", "migrate", "--noinput"]
+          envFrom:
+            - configMapRef:
+                name: devsu-demo-python-config
+            - secretRef:
+                name: devsu-demo-python-secret
+          volumeMounts:
+            - name: data
+              mountPath: /data
       containers:
         - name: web
           image: docker.io/osmardiego/devsu-demo-python:latest
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
           ports:
             - containerPort: 8000
           resources:
