@@ -3,8 +3,8 @@
 help:
 	@echo "Available targets:"
 	@echo "  run          Start Django development server"
-	@echo "  test         Run Django unit tests"
-	@echo "  lint         Run static code analysis with flake8"
+	@echo "  test         Run unit tests with pytest"
+	@echo "  lint         Run static code analysis with ruff"
 	@echo "  coverage     Generate test coverage report"
 	@echo "  docker-build Build the Docker image"
 	@echo "  docker-run   Run the application locally with Docker"
@@ -14,14 +14,13 @@ run:
 	python manage.py runserver 0.0.0.0:8000
 
 test:
-	python manage.py test
+	pytest
 
 lint:
-	flake8 .
+	ruff check .
 
 coverage:
-	coverage run --source='api,demo' manage.py test
-	coverage report -m
+	pytest --cov=api --cov=demo --cov-report=term-missing
 
 docker-build:
 	docker build -t devsu-demo-python:latest .
