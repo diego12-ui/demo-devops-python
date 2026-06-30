@@ -5,10 +5,11 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - secret.yaml
-  - pvc.yaml
+  - postgres.yaml
   - deployment.yaml
   - service.yaml
   - ingress.yaml
+  - hpa.yaml
   - resourcequota.yaml
   - tls-secret.yaml
 labels:

@@ -7,7 +7,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, ['127.0.0.1', 'localhost']),
-    DATABASE_NAME=(str, 'db.sqlite3'),
+    # SQLite (legacy) — reemplazado por PostgreSQL para permitir escalado horizontal:
+    # DATABASE_NAME=(str, 'db.sqlite3'),
+    DATABASE_NAME=(str, 'devsu'),
+    DATABASE_USER=(str, 'devsu'),
+    DATABASE_PASSWORD=(str, 'devsu'),
+    DATABASE_HOST=(str, 'localhost'),
+    DATABASE_PORT=(int, 5432),
 )
 env.read_env(BASE_DIR / '.env')
 
@@ -78,10 +84,23 @@ WSGI_APPLICATION = 'demo.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# SQLite quedó deshabilitado: es single-writer sobre un archivo local, lo que impide
+# tener múltiples réplicas (escalado horizontal / HPA). Se reemplaza por PostgreSQL.
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / env('DATABASE_NAME'),
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / env('DATABASE_NAME'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('DATABASE_NAME'),
+        'USER': env('DATABASE_USER'),
+        'PASSWORD': env('DATABASE_PASSWORD'),
+        'HOST': env('DATABASE_HOST'),
+        'PORT': env('DATABASE_PORT'),
     }
 }
 

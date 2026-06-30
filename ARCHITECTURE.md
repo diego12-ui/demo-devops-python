@@ -22,7 +22,8 @@ La aplicación es un servicio REST en Django que expone operaciones para gestion
 ### Infraestructura
 - Contenedor Docker para ejecutar la app de forma consistente
 - Kubernetes para orquestación y alta disponibilidad
-- Persistencia con SQLite sobre PVC
+- Persistencia con PostgreSQL (StatefulSet con su propio volumen)
+- Aplicación *stateless* para permitir escalado horizontal
 - Balanceo de tráfico mediante Service e Ingress
 
 ## 3. Arquitectura de CI/CD
@@ -54,12 +55,16 @@ flowchart LR
   Client[Cliente] --> Ingress[Ingress]
   Ingress --> Service[Service]
   Service --> Deployment[Deployment]
+  HPA[HPA] --> Deployment
   Deployment --> PodA[Pod 1]
+  Deployment --> PodB[Pod 2]
   PodA --> AppA[Aplicación Django]
+  PodB --> AppB[Aplicación Django]
   Deployment --> VPA[VPA]
   Deployment --> Quota[ResourceQuota]
-  Deployment --> PVC[PVC]
-  PVC --> DB[(SQLite)]
+  AppA --> DB[(PostgreSQL)]
+  AppB --> DB
+  PG[PostgreSQL StatefulSet] --> DB
 ```
 
 ## 5. Seguridad
@@ -80,15 +85,16 @@ flowchart LR
 ## 6. Escalabilidad y disponibilidad
 
 ### Escalabilidad horizontal
-- No se usa `HorizontalPodAutoscaler`: la aplicación es *stateful* (SQLite sobre un `PersistentVolumeClaim` `ReadWriteOnce`), por lo que solo puede tener una réplica. El escalado horizontal requeriría externalizar la base de datos (p. ej. PostgreSQL) para volver los pods *stateless*.
-- El despliegue usa `replicas: 1` con estrategia `Recreate` para liberar el volumen antes de recrear el pod.
+- La base de datos se externalizó a **PostgreSQL**, lo que vuelve la aplicación *stateless* y permite múltiples réplicas.
+- El `HorizontalPodAutoscaler` ajusta el número de réplicas (de 2 a 5) según uso de CPU (70%) y memoria (80%).
+- El `Deployment` usa estrategia `RollingUpdate` (con `maxUnavailable: 0`) para despliegues sin downtime, e initContainers (`wait-for-db` → `migrate`) que garantizan el esquema antes de servir tráfico.
 
 ### Escalabilidad vertical
 - El `VerticalPodAutoscaler` ajusta los recursos del contenedor cuando el cluster soporta el CRD.
 
 ### Gestión de recursos
 - `ResourceQuota` limita consumo de CPU, memoria, pods y servicios por namespace.
-- `PersistentVolumeClaim` permite persistencia de la base de datos SQLite.
+- PostgreSQL persiste sus datos en un volumen propio (`volumeClaimTemplate`, `ReadWriteOnce`) gestionado por el `StatefulSet`.
 
 ## 7. Operación y despliegue
 
@@ -109,4 +115,5 @@ La solución combina una API Django simple con prácticas modernas de DevOps:
 - cobertura de pruebas con pytest-cov
 - contenedorización con Docker
 - despliegue reproducible en Kubernetes
-- escalabilidad vertical con VPA y control de recursos con ResourceQuota
+- base de datos PostgreSQL que permite una aplicación *stateless*
+- escalabilidad horizontal con HPA, vertical con VPA y control de recursos con ResourceQuota

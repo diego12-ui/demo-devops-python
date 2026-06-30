@@ -3,6 +3,9 @@ kind: ConfigMap
 metadata:
   name: devsu-demo-python-config
 data:
-  DATABASE_NAME: /data/db.sqlite3
   DEBUG: "False"
   ALLOWED_HOSTS: "api.pluscloudit.pe,127.0.0.1,localhost"
+  DATABASE_NAME: "devsu"
+  DATABASE_USER: "devsu"
+  DATABASE_HOST: "devsu-demo-python-postgres"
+  DATABASE_PORT: "5432"

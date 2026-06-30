@@ -31,9 +31,15 @@ py manage.py migrate
 
 ### Database
 
-The database is generated as a file in the main path when the project is first run, and its name is `db.sqlite3`.
+The application uses **PostgreSQL**. Connection settings are read from environment variables
+(`DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_HOST`, `DATABASE_PORT`).
 
-Consider giving access permissions to the file for proper functioning.
+> SQLite was replaced by PostgreSQL: SQLite is a single-writer file-based database and cannot be
+> shared across multiple replicas, which prevents horizontal scaling. PostgreSQL makes the app
+> stateless so it can run with several replicas behind an HPA.
+
+For local development you can start a PostgreSQL instance with `docker compose up db`, or run the
+full stack (app + database) with `docker compose up --build`.
 
 ## Usage
 
@@ -63,10 +69,17 @@ Edit `.env` and make sure it contains at least:
 
 ```env
 DJANGO_SECRET_KEY=your-secret-key
-DATABASE_NAME=db.sqlite3
 DEBUG=True
 ALLOWED_HOSTS=127.0.0.1,localhost
+DATABASE_NAME=devsu
+DATABASE_USER=devsu
+DATABASE_PASSWORD=devsu
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
 ```
+
+> The local migrations/runserver steps require a running PostgreSQL. The quickest way is
+> `docker compose up db` (exposes PostgreSQL on `localhost:5432` with the credentials above).
 
 Apply migrations:
 
@@ -225,6 +238,9 @@ curl http://localhost:8000/api/users/
 If you deployed in Kubernetes, also verify:
 
 ```bash
+kubectl get pods -n devsu-demo-python
+kubectl get hpa -n devsu-demo-python
+kubectl get statefulset -n devsu-demo-python
 kubectl get vpa -n devsu-demo-python
 kubectl describe quota -n devsu-demo-python
 ```
@@ -258,13 +274,14 @@ Kubernetes manifests are available in the `k8s/` folder. The deployment includes
 - Namespace
 - ConfigMap
 - Secret
-- PersistentVolumeClaim for SQLite data
+- PostgreSQL StatefulSet + headless Service (with its own ReadWriteOnce volume)
 - ResourceQuota
-- Deployment with 1 replica (Recreate strategy, SQLite on a ReadWriteOnce PVC)
+- Deployment (stateless, 2 replicas, RollingUpdate; initContainers wait-for-db + migrate)
 - Service
 - Ingress
+- HorizontalPodAutoscaler (HPA): 2–5 replicas, scales on CPU/memory
 - Vertical Pod Autoscaler (VPA)
-- Liveness and readiness probe on `/api/health/`
+- Liveness, readiness and startup probes on `/api/health/`
 
 Apply the resources with:
 
@@ -358,17 +375,20 @@ flowchart TD
   K8s --> NS[Namespace]
   K8s --> CM[ConfigMap]
   K8s --> Secret[Secret]
-  K8s --> PVC[PersistentVolumeClaim]
   K8s --> Deploy[Deployment]
   K8s --> SVC[Service]
   K8s --> Ingress[Ingress]
+  K8s --> HPA[HorizontalPodAutoscaler]
   K8s --> VPA[Vertical Pod Autoscaler]
   K8s --> RQ[ResourceQuota]
+  K8s --> PG[PostgreSQL StatefulSet]
 
+  HPA --> Deploy
   Deploy --> Pods[Pods with Gunicorn + Django]
   Pods --> Health[/api/health/]
   Pods --> API[/api/users/ and /api/users/<id>/]
-  PVC --> DB[(SQLite database)]
+  Pods --> DB[(PostgreSQL)]
+  PG --> DB
 ```
 
 ## License

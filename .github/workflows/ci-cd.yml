@@ -9,6 +9,27 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: devsu
+          POSTGRES_USER: devsu
+          POSTGRES_PASSWORD: devsu
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U devsu -d devsu"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    env:
+      DJANGO_SECRET_KEY: test-secret-key
+      DATABASE_NAME: devsu
+      DATABASE_USER: devsu
+      DATABASE_PASSWORD: devsu
+      DATABASE_HOST: localhost
+      DATABASE_PORT: "5432"
     steps:
       - uses: actions/checkout@v7
 
@@ -128,7 +149,7 @@ jobs:
           # Fija la imagen al tag inmutable por SHA (en lugar de :latest) para forzar el rollout con la imagen recién construida
           if [ -n "$DOCKERHUB_USERNAME" ]; then
             IMAGE="docker.io/${DOCKERHUB_USERNAME}/devsu-demo-python:${IMAGE_TAG}"
-            kubectl set image deployment/devsu-demo-python -n devsu-demo-python web="$IMAGE" migrate="$IMAGE"
+            kubectl set image deployment/devsu-demo-python -n devsu-demo-python web="$IMAGE" migrate="$IMAGE" wait-for-db="$IMAGE"
           fi
           kubectl rollout status deployment/devsu-demo-python -n devsu-demo-python --timeout=5m
           if kubectl get crd verticalpodautoscalers.autoscaling.k8s.io >/dev/null 2>&1; then

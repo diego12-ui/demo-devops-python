@@ -3,9 +3,12 @@ kind: Deployment
 metadata:
   name: devsu-demo-python
 spec:
-  replicas: 1
+  replicas: 2
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: devsu-demo-python
@@ -18,12 +21,40 @@ spec:
         runAsNonRoot: true
         runAsUser: 10001
         runAsGroup: 10001
-        fsGroup: 10001
       initContainers:
+        # Espera a que PostgreSQL acepte conexiones antes de migrar
+        - name: wait-for-db
+          image: docker.io/osmardiego/devsu-demo-python:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              until python -c "import socket,os; socket.create_connection((os.environ['DATABASE_HOST'], int(os.environ['DATABASE_PORT'])), timeout=2)"; do
+                echo "waiting for postgres at $DATABASE_HOST:$DATABASE_PORT"; sleep 2;
+              done
+          envFrom:
+            - configMapRef:
+                name: devsu-demo-python-config
+            - secretRef:
+                name: devsu-demo-python-secret
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+        # Aplica las migraciones de Django
         - name: migrate
           image: docker.io/osmardiego/devsu-demo-python:latest
           imagePullPolicy: IfNotPresent
           command: ["python", "manage.py", "migrate", "--noinput"]
+          envFrom:
+            - configMapRef:
+                name: devsu-demo-python-config
+            - secretRef:
+                name: devsu-demo-python-secret
           resources:
             requests:
               cpu: "100m"
@@ -31,14 +62,6 @@ spec:
             limits:
               cpu: "300m"
               memory: "256Mi"
-          envFrom:
-            - configMapRef:
-                name: devsu-demo-python-config
-            - secretRef:
-                name: devsu-demo-python-secret
-          volumeMounts:
-            - name: data
-              mountPath: /data
       containers:
         - name: web
           image: docker.io/osmardiego/devsu-demo-python:latest
@@ -86,10 +109,3 @@ spec:
                   value: localhost
             initialDelaySeconds: 15
             periodSeconds: 20
-          volumeMounts:
-            - name: data
-              mountPath: /data
-      volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: devsu-demo-python-data
