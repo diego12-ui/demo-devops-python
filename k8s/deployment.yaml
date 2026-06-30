@@ -30,19 +30,26 @@ spec:
                 name: devsu-demo-python-config
             - secretRef:
                 name: devsu-demo-python-secret
+          startupProbe:
+            httpGet:
+              path: /api/health/
+              port: 8000
+              host: 127.0.0.1
+            failureThreshold: 30
+            periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /api/health/
               port: 8000
               host: 127.0.0.1
-            initialDelaySeconds: 10
+            initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /api/health/
               port: 8000
               host: 127.0.0.1
-            initialDelaySeconds: 30
+            initialDelaySeconds: 15
             periodSeconds: 20
           volumeMounts:
             - name: data
