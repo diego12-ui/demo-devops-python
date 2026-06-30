@@ -92,8 +92,18 @@ jobs:
         with:
           context: .
           push: false
+          load: true
           provenance: false
           tags: devsu-demo-python:${{ github.sha }}
+
+      - name: Scan image for vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: devsu-demo-python:${{ github.sha }}
+          format: table
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
 
       - name: Push Docker image
         env:

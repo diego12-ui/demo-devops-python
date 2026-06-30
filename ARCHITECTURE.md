@@ -37,8 +37,9 @@ flowchart TD
   CI --> Cover[coverage.xml]
   CI --> Sonar[SonarQube]
   CI --> Build[Construcción de imagen Docker]
-  Build --> Registry[Registro de imágenes]
-  Build --> K8s[Despliegue en Kubernetes]
+  Build --> Trivy[Escaneo de vulnerabilidades con Trivy]
+  Trivy --> Registry[Registro de imágenes]
+  Trivy --> K8s[Despliegue en Kubernetes]
 ```
 
 ### Flujo de CI/CD
@@ -46,7 +47,8 @@ flowchart TD
 2. GitHub Actions ejecuta lint, tests y cobertura.
 3. Se genera un reporte de calidad y cobertura.
 4. Se construye la imagen Docker.
-5. Se despliega la aplicación en Kubernetes.
+5. Se escanea la imagen en busca de vulnerabilidades con Trivy.
+6. Se publica la imagen y se despliega la aplicación en Kubernetes.
 
 ## 4. Arquitectura de ejecución en Kubernetes
 

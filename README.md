@@ -224,7 +224,8 @@ Push your changes to GitHub and confirm that GitHub Actions runs:
 3. coverage report generation
 4. SonarQube analysis if the secrets are present
 5. Docker image build
-6. deployment to Kubernetes if `KUBE_CONFIG_DATA` is present
+6. vulnerability scan of the image with Trivy
+7. image push and deployment to Kubernetes if the credentials/`KUBE_CONFIG_DATA` are present
 
 ### 9. Validación final recomendada
 
@@ -305,6 +306,7 @@ It runs:
 - Coverage report generation
 - Optional SonarQube analysis when `SONAR_HOST_URL` and `SONAR_TOKEN` are configured
 - Docker image build
+- Vulnerability scan of the built image with Trivy (fails on fixable HIGH/CRITICAL CVEs)
 - Optional Docker push when `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` are configured
 - Optional Kubernetes deployment when `KUBE_CONFIG_DATA` is configured
 
@@ -369,7 +371,8 @@ flowchart TD
   Actions --> Coverage[coverage.xml report]
   Actions --> Sonar[SonarQube analysis]
   Actions --> Docker[Build Docker image]
-  Docker --> Registry[Container registry]
+  Docker --> Trivy[Trivy vulnerability scan]
+  Trivy --> Registry[Container registry]
   Actions --> K8s[Kubernetes cluster]
 
   K8s --> NS[Namespace]
