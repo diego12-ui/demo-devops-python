@@ -97,7 +97,7 @@ jobs:
           tags: devsu-demo-python:${{ github.sha }}
 
       - name: Scan image for vulnerabilities (Trivy)
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: devsu-demo-python:${{ github.sha }}
           format: table
