@@ -4,9 +4,9 @@ metadata:
   name: devsu-demo-python-quota
 spec:
   hard:
-    requests.cpu: "2"
-    requests.memory: 2Gi
-    limits.cpu: "4"
-    limits.memory: 4Gi
-    pods: "10"
-    services: "10"
+    requests.cpu: "300m"
+    requests.memory: 384Mi
+    limits.cpu: "900m"
+    limits.memory: 1Gi
+    pods: "5"
+    services: "5"
