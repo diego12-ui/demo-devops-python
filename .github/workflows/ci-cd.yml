@@ -93,6 +93,9 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
 
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
       - name: Configure kubeconfig
         env:
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
@@ -100,6 +103,21 @@ jobs:
         run: |
           mkdir -p $HOME/.kube
           echo "$KUBE_CONFIG_DATA" | base64 --decode > $HOME/.kube/config
+
+      - name: Ensure Traefik is installed
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        if: ${{ env.KUBE_CONFIG_DATA != '' }}
+        run: |
+          if kubectl get crd middlewares.traefik.io >/dev/null 2>&1; then
+            echo "Traefik already installed; skipping installation."
+          else
+            echo "Traefik not found; installing via Helm..."
+            helm repo add traefik https://traefik.github.io/charts
+            helm repo update
+            kubectl create namespace traefik --dry-run=client -o yaml | kubectl apply -f -
+            helm install traefik traefik/traefik -n traefik --wait --timeout 5m
+          fi
 
       - name: Deploy Kubernetes manifests
         env:
@@ -111,4 +129,9 @@ jobs:
             kubectl apply -f k8s/vpa.yaml
           else
             echo "VerticalPodAutoscaler CRD not available in this cluster; skipping VPA manifest."
+          fi
+          if kubectl get crd middlewares.traefik.io >/dev/null 2>&1; then
+            kubectl apply -f k8s/middleware-redirect.yaml
+          else
+            echo "Traefik Middleware CRD not available in this cluster; skipping HTTPS-redirect middleware."
           fi
