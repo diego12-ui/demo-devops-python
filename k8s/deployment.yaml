@@ -34,21 +34,27 @@ spec:
             httpGet:
               path: /api/health/
               port: 8000
-              host: 127.0.0.1
+              httpHeaders:
+                - name: Host
+                  value: localhost
             failureThreshold: 30
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /api/health/
               port: 8000
-              host: 127.0.0.1
+              httpHeaders:
+                - name: Host
+                  value: localhost
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /api/health/
               port: 8000
-              host: 127.0.0.1
+              httpHeaders:
+                - name: Host
+                  value: localhost
             initialDelaySeconds: 15
             periodSeconds: 20
           volumeMounts:
