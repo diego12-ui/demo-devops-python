@@ -5,4 +5,4 @@ metadata:
 data:
   DATABASE_NAME: /data/db.sqlite3
   DEBUG: "False"
-  ALLOWED_HOSTS: "localhost,127.0.0.1"
+  ALLOWED_HOSTS: "devsu-demo.local,127.0.0.1,localhost"
