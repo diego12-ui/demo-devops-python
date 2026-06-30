@@ -107,3 +107,8 @@ jobs:
         if: ${{ env.KUBE_CONFIG_DATA != '' }}
         run: |
           kubectl apply -k k8s
+          if kubectl get crd verticalpodautoscalers.autoscaling.k8s.io >/dev/null 2>&1; then
+            kubectl apply -f k8s/vpa.yaml
+          else
+            echo "VerticalPodAutoscaler CRD not available in this cluster; skipping VPA manifest."
+          fi
