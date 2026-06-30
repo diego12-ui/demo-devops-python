@@ -37,7 +37,7 @@ Consider giving access permissions to the file for proper functioning.
 
 ## Usage
 
-### 1. Run locally with Python
+### 1. Preparar el entorno local
 
 Create and activate your virtual environment:
 
@@ -59,6 +59,15 @@ Create your environment file:
 cp .env.example .env
 ```
 
+Edit `.env` and make sure it contains at least:
+
+```env
+DJANGO_SECRET_KEY=your-secret-key
+DATABASE_NAME=db.sqlite3
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+```
+
 Apply migrations:
 
 ```bash
@@ -71,21 +80,33 @@ Run the development server:
 python manage.py runserver 0.0.0.0:8000
 ```
 
-Open http://localhost:8000/api/health/ to verify the app is up.
+Verify the app is running:
 
-### 2. Run tests
+```bash
+curl http://localhost:8000/api/health/
+```
+
+### 2. Ejecutar pruebas
+
+Run all tests:
 
 ```bash
 pytest
 ```
 
-Or with coverage:
+Run tests with coverage:
 
 ```bash
 pytest --cov=api --cov=demo --cov-report=term-missing
 ```
 
-### 3. Consume the API
+Run linting:
+
+```bash
+ruff check .
+```
+
+### 3. Consumir la API
 
 Example requests:
 
@@ -103,7 +124,7 @@ curl -X POST http://localhost:8000/api/users/ \
 curl http://localhost:8000/api/users/1/
 ```
 
-### 4. Run with Docker
+### 4. Ejecutar con Docker
 
 Build the image:
 
@@ -117,13 +138,13 @@ Run it:
 docker run --env-file .env -p 8000:8000 devsu-demo-python:latest
 ```
 
-### 5. Run with Docker Compose
+### 5. Ejecutar con Docker Compose
 
 ```bash
 docker compose up --build
 ```
 
-### 6. Deploy to Kubernetes
+### 6. Desplegar en Kubernetes
 
 Make sure `kubectl` is configured and your cluster is accessible:
 
@@ -146,16 +167,68 @@ kubectl port-forward -n devsu-demo-python svc/devsu-demo-python 8000:80
 curl http://localhost:8000/api/health/
 ```
 
-### 7. Test the CI/CD pipeline
+### 7. Preparar variables y secretos para CI/CD
+
+The GitHub Actions workflow expects the following secrets and variables.
+
+#### GitHub repository secrets
+
+Create these in GitHub → Settings → Secrets and variables → Actions:
+
+- `SONAR_TOKEN`: token de SonarQube/SonarCloud
+- `SONAR_HOST_URL`: URL del servidor SonarQube
+- `DOCKERHUB_USERNAME`: usuario del registry Docker Hub
+- `DOCKERHUB_TOKEN`: token del registry Docker Hub
+- `KUBE_CONFIG_DATA`: kubeconfig en base64
+
+#### Example for Kubernetes secret
+
+If you want to create the Kubernetes secret manually:
+
+```bash
+kubectl create secret generic devsu-demo-python-secret \
+  --from-literal=DJANGO_SECRET_KEY='your-secret-key' \
+  -n devsu-demo-python
+```
+
+#### Example for TLS secret
+
+If you want HTTPS on ingress:
+
+```bash
+kubectl create secret tls devsu-demo-python-tls \
+  --cert=./tls.crt \
+  --key=./tls.key \
+  -n devsu-demo-python
+```
+
+### 8. Probar el pipeline completo
 
 Push your changes to GitHub and confirm that GitHub Actions runs:
 
 1. lint with `ruff`
 2. tests with `pytest`
 3. coverage report generation
-4. SonarQube analysis if secrets are configured
+4. SonarQube analysis if the secrets are present
 5. Docker image build
-6. deployment to Kubernetes if secrets are configured
+6. deployment to Kubernetes if `KUBE_CONFIG_DATA` is present
+
+### 9. Validación final recomendada
+
+After deployment, verify the end-to-end flow:
+
+```bash
+curl http://localhost:8000/api/health/
+curl http://localhost:8000/api/users/
+```
+
+If you deployed in Kubernetes, also verify:
+
+```bash
+kubectl get hpa -n devsu-demo-python
+kubectl get vpa -n devsu-demo-python
+kubectl describe quota -n devsu-demo-python
+```
 
 ## Docker
 
@@ -212,7 +285,7 @@ A GitHub Actions pipeline is defined in `.github/workflows/ci-cd.yml`.
 It runs:
 
 - Build and install dependencies
-- Static analysis with `flake8`
+- Static analysis with `ruff`
 - Unit tests with `pytest` and Django
 - Coverage report generation
 - Optional SonarQube analysis when `SONAR_HOST_URL` and `SONAR_TOKEN` are configured
