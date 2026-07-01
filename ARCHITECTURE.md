@@ -24,7 +24,7 @@ La aplicación es un servicio REST en Django que expone operaciones para gestion
 - Kubernetes para orquestación y alta disponibilidad
 - Persistencia con PostgreSQL (StatefulSet con su propio volumen)
 - Aplicación *stateless* para permitir escalado horizontal
-- Balanceo de tráfico mediante Service e Ingress
+- Balanceo de tráfico mediante Service e Ingress (controlado por Traefik)
 
 ## 3. Arquitectura de CI/CD
 
@@ -54,7 +54,8 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-  Client[Cliente] --> Ingress[Ingress]
+  Client[Cliente] --> Traefik[Traefik Ingress Controller]
+  Traefik --> Ingress[Ingress]
   Ingress --> Service[Service]
   Service --> Deployment[Deployment]
   HPA[HPA] --> Deployment
@@ -107,6 +108,9 @@ flowchart LR
 - Se aplica con `kubectl apply -k k8s`.
 - El namespace se centraliza en `k8s/kustomization.yaml`.
 - Los recursos se despliegan como una unidad lógica y reproducible.
+- Requisitos del cluster: un ingress controller con la IngressClass `traefik` (el pipeline lo
+  instala vía Helm) y `metrics-server` para que el HPA obtenga métricas de CPU/memoria.
+- La `DATABASE_PASSWORD` del `Secret` debe definirse antes del primer arranque de PostgreSQL.
 
 ## 8. Resumen ejecutivo
 

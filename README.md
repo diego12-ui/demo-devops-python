@@ -22,12 +22,9 @@ Install dependencies.
 pip install -r requirements.txt
 ```
 
-Migrate database
-
-```bash
-py manage.py makemigrations
-py manage.py migrate
-```
+> Database setup (PostgreSQL) and migrations are covered step by step in
+> [Usage → 1. Preparar el entorno local](#1-preparar-el-entorno-local).
+> The app needs a running PostgreSQL and the `DATABASE_*` env vars before migrating.
 
 ### Database
 
@@ -123,20 +120,7 @@ ruff check .
 
 Example requests:
 
-```bash
-curl http://localhost:8000/api/users/
-```
-
-```bash
-curl -X POST http://localhost:8000/api/users/ \
-  -H "Content-Type: application/json" \
-  -d '{"dni":"12345678","name":"Test User"}'
-```
-
-```bash
-curl http://localhost:8000/api/users/1/
-```
-
+![1782838615954](image/README/1782838615954.png)
 ### 4. Ejecutar con Docker
 
 Build the image:
@@ -159,25 +143,45 @@ docker compose up --build
 
 ### 6. Desplegar en Kubernetes
 
-Make sure `kubectl` is configured and your cluster is accessible:
+#### Prerequisites
+
+- `kubectl` configured against a reachable cluster.
+- An **ingress controller** that provides the `traefik` IngressClass. The CI/CD pipeline
+  installs Traefik automatically via Helm; for a manual `kubectl apply -k k8s` you must install
+  it yourself (e.g. `helm install traefik traefik/traefik -n traefik --create-namespace`).
+  Without it the pods still run, but the `Ingress` won't route external traffic.
+- **metrics-server** installed, otherwise the HPA reports `<unknown>` and won't scale:
+  `kubectl get deployment metrics-server -n kube-system`.
+- Set a real **database password** in `k8s/secret.yaml` (`DATABASE_PASSWORD`) **before the first
+  apply** — PostgreSQL only reads it when it initializes its volume for the first time.
+
+#### Deploy
 
 ```bash
 kubectl apply -k k8s
 ```
 
-Check the deployment status:
+Check the deployment status (PostgreSQL comes up first, then the app pods run
+`wait-for-db` → `migrate` init containers before serving):
 
 ```bash
 kubectl get pods -n devsu-demo-python
-kubectl get svc -n devsu-demo-python
-kubectl get ingress -n devsu-demo-python
+kubectl get statefulset -n devsu-demo-python
+kubectl get svc,ingress,hpa -n devsu-demo-python
 ```
 
-Test the health endpoint from the cluster:
+Test the health endpoint. If the cluster IP is reachable from your machine, use `port-forward`:
 
 ```bash
 kubectl port-forward -n devsu-demo-python svc/devsu-demo-python 8000:80
 curl http://localhost:8000/api/health/
+```
+
+If you cannot reach the cluster network directly (e.g. Rancher web shell), test from inside a pod:
+
+```bash
+kubectl exec -n devsu-demo-python deploy/devsu-demo-python -c web -- \
+  python -c "import urllib.request; print(urllib.request.urlopen('http://localhost:8000/api/health/').read())"
 ```
 
 ### 7. Preparar variables y secretos para CI/CD
@@ -201,6 +205,7 @@ If you want to create the Kubernetes secret manually:
 ```bash
 kubectl create secret generic devsu-demo-python-secret \
   --from-literal=DJANGO_SECRET_KEY='your-secret-key' \
+  --from-literal=DATABASE_PASSWORD='your-db-password' \
   -n devsu-demo-python
 ```
 
