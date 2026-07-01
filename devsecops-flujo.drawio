@@ -1,0 +1,214 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0" version="24.7.17">
+  <diagram id="devsecopsFlow" name="DevSecOps Flow">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ci_box" value="CI - Integracion continua" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f0ff;strokeColor=#0055cc;verticalAlign=top;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="260" width="560" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="sec_box" value="Controles DevSecOps" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6e6;strokeColor=#cc0000;verticalAlign=top;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="640" y="260" width="360" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="cd_box" value="CD - Despliegue continuo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6ffe6;strokeColor=#009933;verticalAlign=top;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="680" width="560" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="k8s_box" value="Kubernetes Cluster (namespace: devsu-demo-python)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff5e6;strokeColor=#e68a00;verticalAlign=top;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="870" width="1120" height="360" as="geometry" />
+        </mxCell>
+        <mxCell id="dev" value="Desarrollador" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="600" y="40" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="gh" value="GitHub Repository" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="600" y="110" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="gha" value="GitHub Actions (ci-cd.yml)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#333333;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="570" y="180" width="220" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="lint" value="ruff (lint)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0055cc;" vertex="1" parent="1">
+          <mxGeometry x="60" y="320" width="110" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="test" value="pytest + coverage (Postgres service)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0055cc;" vertex="1" parent="1">
+          <mxGeometry x="185" y="320" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sonar" value="SonarQube" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0055cc;" vertex="1" parent="1">
+          <mxGeometry x="350" y="320" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="build" value="Docker build (non-root + healthcheck)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#0055cc;" vertex="1" parent="1">
+          <mxGeometry x="465" y="320" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="trivy" value="Trivy scan (HIGH/CRITICAL)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cc0000;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="670" y="320" width="300" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nosecret" value=".dockerignore (sin secretos en la imagen)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cc0000;" vertex="1" parent="1">
+          <mxGeometry x="670" y="375" width="300" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="nonroot" value="Imagen non-root (UID 10001)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#cc0000;" vertex="1" parent="1">
+          <mxGeometry x="670" y="420" width="300" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="imgpush" value="docker push (SHA + latest)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="670" y="530" width="300" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fail" value="Pipeline falla" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="320" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="reg" value="Docker Hub Registry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="720" y="600" width="200" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="helm" value="Ensure Traefik (helm upgrade)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#009933;" vertex="1" parent="1">
+          <mxGeometry x="60" y="730" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="apply" value="kubectl apply -k (Kustomize)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#009933;" vertex="1" parent="1">
+          <mxGeometry x="195" y="730" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="setimg" value="set image SHA (inmutable)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#009933;" vertex="1" parent="1">
+          <mxGeometry x="330" y="730" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="rollout" value="rollout status" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#009933;" vertex="1" parent="1">
+          <mxGeometry x="465" y="730" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="traefik" value="Traefik Ingress Controller (LoadBalancer / MetalLB)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="910" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ing" value="Ingress host: api.pluscloudit.pe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="70" y="985" width="220" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="svc" value="Service (ClusterIP 80)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1060" width="220" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="hpa" value="HPA 2 a 5 replicas CPU 70% / MEM 80%" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="340" y="905" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vpa" value="VPA" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="530" y="910" width="90" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="rq" value="ResourceQuota" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="640" y="910" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="cm" value="ConfigMap DATABASE_* ALLOWED_HOSTS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="340" y="985" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="seck" value="Secret DJANGO_SECRET_KEY DATABASE_PASSWORD" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="640" y="985" width="330" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dep" value="Deployment (stateless - RollingUpdate)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1055" width="200" height="45" as="geometry" />
+        </mxCell>
+        <mxCell id="init1" value="initContainer wait-for-db" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="340" y="1130" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="init2" value="initContainer migrate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="520" y="1130" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="web" value="Pods web gunicorn + Django" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="700" y="1130" width="170" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="pg" value="PostgreSQL StatefulSet + PVC" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="920" y="1120" width="200" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="user" value="Usuario final" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="1250" width="160" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="dev" target="gh">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="gh" target="gha">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="gha" target="lint">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="lint" target="test">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="test" target="sonar">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="sonar" target="build">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="build" target="trivy">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="build" target="nosecret">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="build" target="nonroot">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="OK" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="trivy" target="imgpush">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" value="CVE con fix" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;strokeColor=#b85450;" edge="1" parent="1" source="trivy" target="fail">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="imgpush" target="reg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="reg" target="helm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="helm" target="apply">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="apply" target="setimg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="setimg" target="rollout">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="rollout" target="traefik">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="traefik" target="ing">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="ing" target="svc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="svc" target="dep">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" value="escala" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="hpa" target="dep">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" value="ajusta" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="vpa" target="dep">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e23" value="limita" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="rq" target="dep">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e24" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="dep" target="init1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e25" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="init1" target="init2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e26" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="init2" target="web">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e27" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="web" target="pg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e28" value="migrate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="init2" target="pg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e29" value="envFrom" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="cm" target="dep">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e30" value="envFrom" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="seck" target="dep">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e31" value="POSTGRES_PASSWORD" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="seck" target="pg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e32" value="https" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;" edge="1" parent="1" source="user" target="traefik">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e33" value="deploy (master + KUBE_CONFIG_DATA)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=classic;dashed=1;" edge="1" parent="1" source="gha" target="helm">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
