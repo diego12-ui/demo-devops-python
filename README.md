@@ -1,168 +1,144 @@
-# Demo Devops Python
+# Demo DevOps Python
 
-This is a simple application to be used in the technical test of DevOps.
+API REST sencilla en Django (Django REST Framework) para gestionar usuarios, usada como prueba
+técnica de DevOps. Expone un CRUD de usuarios y un endpoint de *health check*.
 
-## Getting Started
+## Stack
 
-### Prerequisites
+- **Lenguaje / framework:** Python 3.11, Django + Django REST Framework
+- **Servidor:** Gunicorn
+- **Base de datos:** PostgreSQL
+- **Contenedores:** Docker / Docker Compose
+- **Orquestación:** Kubernetes (Traefik como Ingress Controller)
+- **CI/CD:** GitHub Actions (ruff, pytest, SonarQube, Trivy)
 
-- Python 3.11.3
+## Requisitos
 
-### Installation
+| Para... | Necesitas |
+|---|---|
+| Correr en local | Python 3.11+ y Docker (para la base de datos) |
+| Correr con contenedores | Docker + Docker Compose |
+| Desplegar en Kubernetes | `kubectl` + acceso a un cluster |
 
-Clone this repo.
+## Instalación
 
-```bash
-git clone https://bitbucket.org/devsu/demo-devops-python.git
-```
-
-Install dependencies.
-
-```bash
-pip install -r requirements.txt
-```
-
-> Database setup (PostgreSQL) and migrations are covered step by step in
-> [Usage → 1. Preparar el entorno local](#1-preparar-el-entorno-local).
-> The app needs a running PostgreSQL and the `DATABASE_*` env vars before migrating.
-
-### Database
-
-The application uses **PostgreSQL**. Connection settings are read from environment variables
-(`DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`, `DATABASE_HOST`, `DATABASE_PORT`).
-
-> SQLite was replaced by PostgreSQL: SQLite is a single-writer file-based database and cannot be
-> shared across multiple replicas, which prevents horizontal scaling. PostgreSQL makes the app
-> stateless so it can run with several replicas behind an HPA.
-
-For local development you can start a PostgreSQL instance with `docker compose up db`, or run the
-full stack (app + database) with `docker compose up --build`.
-
-## Usage
-
-### 1. Preparar el entorno local
-
-Create and activate your virtual environment:
+Clona el repositorio:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+git clone https://github.com/diego12-ui/demo-devops-python.git
+cd demo-devops-python
 ```
 
-Install dependencies:
+## Variables de entorno
 
-```bash
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-```
-
-Create your environment file:
+La app se configura por variables de entorno (archivo `.env` en local). Copia el ejemplo:
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` and make sure it contains at least:
+| Variable | Descripción | Ejemplo |
+|---|---|---|
+| `DJANGO_SECRET_KEY` | Clave secreta de Django | `una-clave-larga-y-aleatoria` |
+| `DEBUG` | Modo debug | `True` (local) / `False` (prod) |
+| `ALLOWED_HOSTS` | Hosts permitidos por Django | `127.0.0.1,localhost` |
+| `DATABASE_NAME` | Nombre de la base | `devsu` |
+| `DATABASE_USER` | Usuario de la base | `devsu` |
+| `DATABASE_PASSWORD` | Contraseña de la base | `devsu` |
+| `DATABASE_HOST` | Host de PostgreSQL | `localhost` |
+| `DATABASE_PORT` | Puerto de PostgreSQL | `5432` |
 
-```env
-DJANGO_SECRET_KEY=your-secret-key
-DEBUG=True
-ALLOWED_HOSTS=127.0.0.1,localhost
-DATABASE_NAME=devsu
-DATABASE_USER=devsu
-DATABASE_PASSWORD=devsu
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-```
+> **Nota:** La app usa **PostgreSQL**. Se reemplazó SQLite porque es de un solo escritor sobre un
+> archivo local y no permite múltiples réplicas; PostgreSQL vuelve la app *stateless* y habilita el
+> escalado horizontal (HPA).
 
-> The local migrations/runserver steps require a running PostgreSQL. The quickest way is
-> `docker compose up db` (exposes PostgreSQL on `localhost:5432` with the credentials above).
+## Cómo ejecutar
 
-Apply migrations:
+Hay tres formas de correr la app. Elige la que necesites.
 
-```bash
-python manage.py migrate
-```
+### Opción A — Docker Compose (la más rápida)
 
-Run the development server:
-
-```bash
-python manage.py runserver 0.0.0.0:8000
-```
-
-Verify the app is running:
+Levanta app + base de datos, con migraciones automáticas.
 
 ```bash
+# 1. Copia las variables de entorno
+cp .env.example .env
+
+# 2. Construye y levanta todo
+docker compose up --build
+
+# 3. Verifica (en otra terminal)
 curl http://localhost:8000/api/health/
 ```
 
-### 2. Ejecutar pruebas
+Detener y borrar los datos: `docker compose down -v`.
 
-Run all tests:
+➡️ Para probar los endpoints, ve a [Probar las APIs](#probar-las-apis) con `BASE_URL=http://localhost:8000`.
 
-```bash
-pytest
-```
-
-Run tests with coverage:
+### Opción B — Local (sin contenedores)
 
 ```bash
-pytest --cov=api --cov=demo --cov-report=term-missing
+# 1. Entorno virtual + dependencias
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt -r requirements-dev.txt
+
+# 2. Base de datos PostgreSQL (la forma más simple)
+docker compose up db          # expone PostgreSQL en localhost:5432
+
+# 3. Variables de entorno (DATABASE_HOST=localhost)
+cp .env.example .env
+
+# 4. Migraciones + servidor
+python manage.py migrate
+python manage.py runserver 0.0.0.0:8000
+
+# 5. Verifica
+curl http://localhost:8000/api/health/
 ```
 
-Run linting:
+**Pruebas y calidad:**
 
 ```bash
-ruff check .
+pytest                                                  # pruebas unitarias
+pytest --cov=api --cov=demo --cov-report=term-missing   # con cobertura
+ruff check .                                            # análisis estático (lint)
 ```
 
-### 3. Consumir la API
+➡️ Para probar los endpoints, ve a [Probar las APIs](#probar-las-apis) con `BASE_URL=http://localhost:8000`.
 
-Example requests:
+### Opción C — Kubernetes
 
-![1782838615954](image/README/1782838615954.png)
-### 4. Ejecutar con Docker
+Los manifiestos están en `k8s/` (aplicados con Kustomize). Incluyen:
 
-Build the image:
+- Namespace, ConfigMap, Secret
+- **PostgreSQL** (StatefulSet + Service headless con volumen `ReadWriteOnce`)
+- **Deployment** (stateless, 2 réplicas, RollingUpdate; initContainers `wait-for-db` → `migrate`)
+- Service e Ingress
+- **HPA** (2–5 réplicas según CPU/memoria) y **VPA**
+- **ResourceQuota**
+- Probes de *liveness*, *readiness* y *startup* en `/api/health/`
 
-```bash
-docker build -t devsu-demo-python:latest .
-```
+#### C.1 Prerrequisitos del cluster
 
-Run it:
-
-```bash
-docker run --env-file .env -p 8000:8000 devsu-demo-python:latest
-```
-
-### 5. Ejecutar con Docker Compose
-
-```bash
-docker compose up --build
-```
-
-### 6. Desplegar en Kubernetes
-
-#### Prerequisites
-
-- `kubectl` configured against a reachable cluster.
-- An **ingress controller** that provides the `traefik` IngressClass. The CI/CD pipeline
-  installs Traefik automatically via Helm; for a manual `kubectl apply -k k8s` you must install
-  it yourself (e.g. `helm install traefik traefik/traefik -n traefik --create-namespace`).
-  Without it the pods still run, but the `Ingress` won't route external traffic.
-- **metrics-server** installed, otherwise the HPA reports `<unknown>` and won't scale:
+- `kubectl` configurado contra un cluster accesible.
+- Un **Ingress Controller** con la IngressClass `traefik`. El pipeline de CI/CD instala Traefik
+  automáticamente vía Helm; para un `apply` manual, instálalo tú:
+  `helm install traefik traefik/traefik -n traefik --create-namespace`.
+- **metrics-server** instalado (sin él, el HPA marca `<unknown>` y no escala):
   `kubectl get deployment metrics-server -n kube-system`.
-- Set a real **database password** in `k8s/secret.yaml` (`DATABASE_PASSWORD`) **before the first
-  apply** — PostgreSQL only reads it when it initializes its volume for the first time.
+- Define una **contraseña real** en `k8s/secret.yaml` (`DATABASE_PASSWORD`) **antes del primer
+  `apply`** — PostgreSQL solo la lee al inicializar su volumen por primera vez.
 
-#### Deploy
+#### C.2 Desplegar
 
 ```bash
 kubectl apply -k k8s
 ```
 
-Check the deployment status (PostgreSQL comes up first, then the app pods run
-`wait-for-db` → `migrate` init containers before serving):
+El namespace se centraliza en [k8s/kustomization.yaml](k8s/kustomization.yaml).
+
+#### C.3 Verificar el estado
 
 ```bash
 kubectl get pods -n devsu-demo-python
@@ -170,202 +146,110 @@ kubectl get statefulset -n devsu-demo-python
 kubectl get svc,ingress,hpa -n devsu-demo-python
 ```
 
-Test the health endpoint. If the cluster IP is reachable from your machine, use `port-forward`:
+Debe quedar: PostgreSQL `Running`, 2 pods `web` `Running` (tras los initContainers `wait-for-db` →
+`migrate`) y el HPA con réplicas asignadas.
+
+#### C.4 Acceder a la app
+
+**Opción 1 — Por el dominio público** (Ingress `api.pluscloudit.pe`):
+
+```bash
+curl https://api.pluscloudit.pe/api/health/
+```
+
+> El dominio debe resolver hacia el Ingress. Si aún no tienes DNS público, apúntalo en tu
+> `/etc/hosts` a la IP del Ingress: `echo "<IP_INGRESS> api.pluscloudit.pe" | sudo tee -a /etc/hosts`.
+> Usa `-k` en `curl` si el certificado TLS es autofirmado.
+
+**Opción 2 — Con `port-forward`** (si alcanzas la red del cluster):
 
 ```bash
 kubectl port-forward -n devsu-demo-python svc/devsu-demo-python 8000:80
 curl http://localhost:8000/api/health/
 ```
 
-If you cannot reach the cluster network directly (e.g. Rancher web shell), test from inside a pod:
+**Opción 3 — Desde dentro de un pod** (si no alcanzas la red del cluster, p. ej. shell web de Rancher):
 
 ```bash
 kubectl exec -n devsu-demo-python deploy/devsu-demo-python -c web -- \
   python -c "import urllib.request; print(urllib.request.urlopen('http://localhost:8000/api/health/').read())"
 ```
 
-### 7. Preparar variables y secretos para CI/CD
+➡️ Para probar los endpoints, ve a [Probar las APIs](#probar-las-apis) con:
+- `BASE_URL=https://api.pluscloudit.pe` (dominio público), o
+- `BASE_URL=http://localhost:8000` (si usaste `port-forward`).
 
-The GitHub Actions workflow expects the following secrets and variables.
+## Probar las APIs
 
-#### GitHub repository secrets
+Define primero la URL base según tu entorno y luego ejecuta los mismos comandos:
 
-Create these in GitHub → Settings → Secrets and variables → Actions:
-
-- `SONAR_TOKEN`: token de SonarQube/SonarCloud
-- `SONAR_HOST_URL`: URL del servidor SonarQube
-- `DOCKERHUB_USERNAME`: usuario del registry Docker Hub
-- `DOCKERHUB_TOKEN`: token del registry Docker Hub
-- `KUBE_CONFIG_DATA`: kubeconfig en base64
-
-#### Example for Kubernetes secret
-
-If you want to create the Kubernetes secret manually:
+| Entorno | `BASE_URL` |
+|---|---|
+| Local / Docker / Compose | `http://localhost:8000` |
+| Kubernetes (`port-forward`) | `http://localhost:8000` |
+| Kubernetes (dominio público) | `https://api.pluscloudit.pe` |
 
 ```bash
-kubectl create secret generic devsu-demo-python-secret \
-  --from-literal=DJANGO_SECRET_KEY='your-secret-key' \
-  --from-literal=DATABASE_PASSWORD='your-db-password' \
-  -n devsu-demo-python
+export BASE_URL=http://localhost:8000      # o https://api.pluscloudit.pe
 ```
 
-#### Example for TLS secret
-
-If you want HTTPS on ingress:
+**1. Health check:**
 
 ```bash
-kubectl create secret tls devsu-demo-python-tls \
-  --cert=./tls.crt \
-  --key=./tls.key \
-  -n devsu-demo-python
+curl $BASE_URL/api/health/
+# {"status": "ok"}
 ```
 
-### 8. Probar el pipeline completo
-
-Push your changes to GitHub and confirm that GitHub Actions runs:
-
-1. lint with `ruff`
-2. tests with `pytest`
-3. coverage report generation
-4. SonarQube analysis if the secrets are present
-5. Docker image build
-6. vulnerability scan of the image with Trivy
-7. image push and deployment to Kubernetes if the credentials/`KUBE_CONFIG_DATA` are present
-
-### 9. Validación final recomendada
-
-After deployment, verify the end-to-end flow:
+**2. Crear un usuario:**
 
 ```bash
-curl http://localhost:8000/api/health/
-curl http://localhost:8000/api/users/
+curl -X POST $BASE_URL/api/users/ \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Diego", "dni": "12345678901"}'
+# {"id": 1, "dni": "12345678901", "name": "Diego"}
 ```
 
-If you deployed in Kubernetes, also verify:
+**3. Listar usuarios:**
 
 ```bash
-kubectl get pods -n devsu-demo-python
-kubectl get hpa -n devsu-demo-python
-kubectl get statefulset -n devsu-demo-python
-kubectl get vpa -n devsu-demo-python
-kubectl describe quota -n devsu-demo-python
+curl $BASE_URL/api/users/
+# [{"id": 1, "dni": "12345678901", "name": "Diego"}]
 ```
 
-## Docker
-
-This project includes Docker support.
-
-Build the image locally:
+**4. Obtener un usuario por id:**
 
 ```bash
-docker build -t devsu-demo-python:latest .
+curl $BASE_URL/api/users/1/
+# {"id": 1, "dni": "12345678901", "name": "Diego"}
 ```
 
-Run with Docker:
+> Con el dominio público y certificado autofirmado, agrega `-k` a cada `curl`.
 
-```bash
-docker run --env-file .env -p 8000:8000 devsu-demo-python:latest
-```
+### Referencia de endpoints
 
-Or use docker compose:
+| Método | Ruta | Descripción | Respuestas |
+|---|---|---|---|
+| `GET` | `/api/health/` | Health check | `200 {"status":"ok"}` |
+| `GET` | `/api/users/` | Lista usuarios | `200 [ ... ]` |
+| `POST` | `/api/users/` | Crea usuario | `201` / `400` si el DNI ya existe |
+| `GET` | `/api/users/<id>/` | Obtiene un usuario | `200` / `404` si no existe |
 
-```bash
-docker compose up --build
-```
+## CI/CD
 
-## Kubernetes deployment
+El pipeline está en [.github/workflows/ci-cd.yml](.github/workflows/ci-cd.yml) y se ejecuta en cada
+push a `master`:
 
-Kubernetes manifests are available in the `k8s/` folder. The deployment includes:
+1. Instalación de dependencias
+2. Análisis estático con `ruff`
+3. Pruebas unitarias con `pytest` (+ PostgreSQL de servicio)
+4. Reporte de cobertura
+5. Análisis de SonarQube (si hay secretos configurados)
+6. Build de la imagen Docker
+7. Escaneo de vulnerabilidades con **Trivy** (falla ante CVEs HIGH/CRITICAL con fix)
+8. Push de la imagen (si hay credenciales de Docker Hub)
+9. Despliegue a Kubernetes (si `KUBE_CONFIG_DATA` está configurado)
 
-- Namespace
-- ConfigMap
-- Secret
-- PostgreSQL StatefulSet + headless Service (with its own ReadWriteOnce volume)
-- ResourceQuota
-- Deployment (stateless, 2 replicas, RollingUpdate; initContainers wait-for-db + migrate)
-- Service
-- Ingress
-- HorizontalPodAutoscaler (HPA): 2–5 replicas, scales on CPU/memory
-- Vertical Pod Autoscaler (VPA)
-- Liveness, readiness and startup probes on `/api/health/`
-
-Apply the resources with:
-
-```bash
-kubectl apply -k k8s
-```
-
-The namespace is centralized in [k8s/kustomization.yaml](k8s/kustomization.yaml), so you can change it in one place before deploying.
-
-> Note: replace the placeholder secret value in `k8s/secret.yaml` and update the image name in `k8s/deployment.yaml` before deploying.
-
-## CI/CD Pipeline
-
-A GitHub Actions pipeline is defined in `.github/workflows/ci-cd.yml`.
-
-It runs:
-
-- Build and install dependencies
-- Static analysis with `ruff`
-- Unit tests with `pytest` and Django
-- Coverage report generation
-- Optional SonarQube analysis when `SONAR_HOST_URL` and `SONAR_TOKEN` are configured
-- Docker image build
-- Vulnerability scan of the built image with Trivy (fails on fixable HIGH/CRITICAL CVEs)
-- Optional Docker push when `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` are configured
-- Optional Kubernetes deployment when `KUBE_CONFIG_DATA` is configured
-
-## API endpoints
-
-- `GET /api/users/` — list all users
-- `POST /api/users/` — create a new user
-- `GET /api/users/<id>/` — retrieve one user by id
-- `GET /api/health/` — health check
-
-### Create User
-
-To create a user, call the endpoint **/api/users/** with the following body:
-
-```json
-{
-    "dni": "dni",
-    "name": "name"
-}
-```
-
-Successful response:
-
-```json
-{
-    "id": 1,
-    "dni": "dni",
-    "name": "name"
-}
-```
-
-If the user already exists, the service returns status 400:
-
-```json
-{
-    "detail": "User already exists"
-}
-```
-
-### Get Users
-
-Call **GET /api/users/** to list users.
-
-### Get User
-
-Call **GET /api/users/<id>** to retrieve one user.
-
-If the user does not exist, the service returns status 404.
-
-## Architecture
-
-A detailed architecture description is available in `ARCHITECTURE.md`.
-
-### CI/CD full architecture diagram
+### Diagrama del pipeline
 
 ```mermaid
 flowchart TD
@@ -399,6 +283,36 @@ flowchart TD
   PG --> DB
 ```
 
-## License
+### Secretos requeridos en GitHub
+
+En **Settings → Secrets and variables → Actions**:
+
+| Secreto | Descripción |
+|---|---|
+| `SONAR_TOKEN` | Token de SonarQube/SonarCloud |
+| `SONAR_HOST_URL` | URL del servidor SonarQube |
+| `DOCKERHUB_USERNAME` | Usuario de Docker Hub |
+| `DOCKERHUB_TOKEN` | Token de Docker Hub |
+| `KUBE_CONFIG_DATA` | kubeconfig en base64 |
+
+### Crear los Secret de Kubernetes manualmente (opcional)
+
+```bash
+kubectl create secret generic devsu-demo-python-secret \
+  --from-literal=DJANGO_SECRET_KEY='tu-clave-secreta' \
+  --from-literal=DATABASE_PASSWORD='tu-password-db' \
+  -n devsu-demo-python
+
+kubectl create secret tls devsu-demo-python-tls \
+  --cert=./tls.crt --key=./tls.key \
+  -n devsu-demo-python
+```
+
+## Arquitectura
+
+- [ARCHITECTURE.md](ARCHITECTURE.md) — descripción detallada de la arquitectura y diagramas.
+- [DEVSECOPS-ARCHITECTURE.md](DEVSECOPS-ARCHITECTURE.md) — flujo DevSecOps completo (CI/CD + runtime).
+
+## Licencia
 
 Copyright © 2023 Devsu. All rights reserved.
